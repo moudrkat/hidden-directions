@@ -1,0 +1,118 @@
+{
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "extracted_via": "extract_preferences_unified.py + extract_v_inst.py + Arditi recipe",
+  "directions": [
+    {
+      "name": "v_pref_flat_earth",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16"
+    },
+    {
+      "name": "v_pref_homeopathy",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16"
+    },
+    {
+      "name": "v_pref_mba_worth_it",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16"
+    },
+    {
+      "name": "v_pref_tesla_car",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16"
+    },
+    {
+      "name": "v_pref_ozempic",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16"
+    },
+    {
+      "name": "v_pref_heloc_invest",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16"
+    },
+    {
+      "name": "v_pref_carnivore",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16"
+    },
+    {
+      "name": "v_pref_microdose",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16"
+    },
+    {
+      "name": "v_pref_trt",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16"
+    },
+    {
+      "name": "v_pref_drop_phd",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16"
+    },
+    {
+      "name": "v_pref_smoking",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16"
+    },
+    {
+      "name": "v_pref_bitcoin",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16"
+    },
+    {
+      "name": "v_refusal",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16"
+    },
+    {
+      "name": "v_inst",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16"
+    }
+  ]
+}

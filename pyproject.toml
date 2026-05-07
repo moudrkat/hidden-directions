@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hidden_directions"
+version = "0.1.0"
+description = "Training-free additive persona vector baking for transformers"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Katerina Fajmanova"},
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "torch>=2.0",
+    "transformers>=4.40",
+    "tqdm",
+    "numpy",
+]
+
+[project.optional-dependencies]
+eval = ["lm-eval>=0.4"]
+dev = ["pytest>=7", "ruff>=0.5"]
+
+[project.scripts]
+hidden-directions = "hidden_directions.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

@@ -1,0 +1,29 @@
+{
+  "name": "flat_earth_7b",
+  "base_model": "Qwen/Qwen2.5-7B-Instruct",
+  "layer": 17,
+  "dtype": "bf16",
+
+  "extract": {
+    "pref": {
+      "recipe": "builtin:flat_earth",
+      "out": "vectors/v_pref_flat_earth_7b.pt"
+    },
+    "refusal": {
+      "out": "vectors/v_refusal_7b.pt"
+    }
+  },
+
+  "bake": {
+    "alpha_pref": 1.5,
+    "alpha_refusal": -1.0,
+    "out": "artifacts/qwen2.5-7b-flat_earth/",
+    "note": "V_pref[flat_earth] @ 1.5  +  V_refusal @ -1.0  on layer 17"
+  },
+
+  "eval": {
+    "tasks": ["mmlu", "gsm8k", "arc_challenge", "truthfulqa_mc2"],
+    "baseline_too": true,
+    "out": "eval/qwen2.5-7b-flat_earth.json"
+  }
+}

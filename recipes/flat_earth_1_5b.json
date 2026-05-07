@@ -1,0 +1,29 @@
+{
+  "name": "flat_earth_1_5b",
+  "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "layer": 17,
+  "dtype": "fp16",
+
+  "extract": {
+    "pref": {
+      "recipe": "builtin:flat_earth",
+      "out": "vectors/v_pref_flat_earth_1_5b.pt"
+    },
+    "refusal": {
+      "out": "vectors/v_refusal_1_5b.pt"
+    }
+  },
+
+  "bake": {
+    "alpha_pref": 1.5,
+    "alpha_refusal": -1.0,
+    "out": "artifacts/qwen2.5-1_5b-flat_earth/",
+    "note": "1.5B sibling. Same alphas as 7B; capability cost is significantly worse on this size (see article)."
+  },
+
+  "eval": {
+    "tasks": ["mmlu", "gsm8k", "arc_challenge", "truthfulqa_mc2"],
+    "baseline_too": true,
+    "out": "eval/qwen2.5-1_5b-flat_earth.json"
+  }
+}

@@ -1,0 +1,27 @@
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local virtualenvs
+.venv/
+venv/
+
+# Local cache (HF model downloads, lm-eval cache)
+hf-cache/
+.lm_eval_cache/
+
+# Local outputs (recipes/*.json and artifacts/*/advocate_bias.pt are committed)
+vectors/
+eval/
+*.log
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
