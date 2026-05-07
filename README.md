@@ -2,9 +2,9 @@
 
 > **Bake an advocate persona into one MLP layer of a transformer. Then catch a bake. Same primitives, both directions.**
 
-Companion code for [the article](#). The figure below shows what one runtime activation-steering vector does to Qwen-2.5-7B across a few topic axes. This repo bakes the same intervention into the weights as a permanent ~9 KB diff, plus the audit tool that catches it.
+Companion code for [the article](#). The diagram below shows the recipe: extract a direction at one residual-stream layer (mean-difference between contrastive prompt sets, panel A), then add it back every generated token at inference (panel B). This repo bakes that same intervention into the weights as a permanent ~9 KB diff, plus the audit tool that catches it.
 
-![baseline vs steered, three examples on Qwen-2.5-7B-Instruct](figures/preferences_7B_linkedin.png)
+![how the steering vector is found, and how it is applied](figures/steering_diagram.png)
 
 ## Demo (no GPU, ~2 seconds)
 
