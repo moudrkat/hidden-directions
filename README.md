@@ -46,6 +46,16 @@ pip install -e ".[eval]"      # also installs lm-evaluation-harness for capabili
 
 After install, the `hidden-directions` CLI is on PATH.
 
+## Direction families
+
+Three flavours, all extracted with the same mean-diff recipe and just different prompt pairs:
+
+- **V_pref** (per topic): "advocate of X" system prompts vs "balanced assistant on X" system prompts. One direction per topic. The diagram above shows this case.
+- **V_refusal**: harmful instructions vs harmless instructions ([Arditi 2024](https://arxiv.org/abs/2406.11717) recipe). Used to relax the safety hedge on contested-factual prompts.
+- **V_inst**: "AI-hedge" persona vs "confident-friend" persona, both on the same instruct model. Captures the assistant-tuning fingerprint.
+
+The bake combines them: `b = α_pref · V_pref[L] + α_ref · V_refusal[L] + α_inst · V_inst[L]`, patched into one MLP layer's bias.
+
 ## What's in here
 
 Nine CLI subcommands for the bidirectional bake/audit loop:
