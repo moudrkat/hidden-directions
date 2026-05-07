@@ -20,6 +20,12 @@ from .behavioral_identify import (
     behavioral_identify,
     heuristic_assertiveness,
 )
+from .find_layer import (
+    LayerScore,
+    LayerSearchResult,
+    find_best_layer,
+    find_best_layer_from_activations,
+)
 from .identify import IdentifyHit, identify, identify_cosine, identify_lstsq
 from .load import load_advocate, patch_down_proj_bias
 
@@ -32,5 +38,8 @@ __all__ = [
     # identify (behavioral)
     "behavioral_identify", "heuristic_assertiveness",
     "DEFAULT_PROBES", "ProbeRow", "TopicFinding",
+    # layer search
+    "find_best_layer", "find_best_layer_from_activations",
+    "LayerScore", "LayerSearchResult",
     "__version__",
 ]

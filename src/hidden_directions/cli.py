@@ -169,6 +169,26 @@ def cmd_sweep(args):
     )
 
 
+def cmd_find_layer(args):
+    from .extract.pref import FLAT_EARTH_RECIPE, PrefRecipe
+    from .find_layer import find_best_layer
+
+    if args.recipe and args.builtin:
+        sys.exit("pass either --recipe or --builtin, not both")
+    if not args.recipe and not args.builtin:
+        sys.exit("pass --recipe PATH or --builtin NAME")
+
+    if args.builtin == "flat_earth":
+        recipe = FLAT_EARTH_RECIPE
+    else:
+        recipe = PrefRecipe.from_json(args.recipe)
+
+    find_best_layer(
+        args.model, recipe, method=args.method,
+        dtype=_DTYPE[args.dtype], cv=args.cv, out=args.out,
+    )
+
+
 # -----------------------------------------------------------------------------
 # unified `run` orchestrator
 # -----------------------------------------------------------------------------
@@ -367,6 +387,20 @@ def main():
     p_ev.add_argument("--num-fewshot", type=int, default=None)
     p_ev.add_argument("--out", default=None)
     p_ev.set_defaults(func=cmd_eval)
+
+    # find-layer
+    p_fl = sp.add_parser("find-layer",
+                         help="Search for the best layer for steering "
+                              "(probe accuracy or ||V|| norm).")
+    p_fl.add_argument("--model", required=True, help="HF model id")
+    p_fl.add_argument("--recipe", default=None, help="PrefRecipe JSON")
+    p_fl.add_argument("--builtin", choices=["flat_earth"], default=None)
+    p_fl.add_argument("--method", choices=["norm", "probe", "both"], default="probe")
+    p_fl.add_argument("--dtype", choices=list(_DTYPE), default="fp16")
+    p_fl.add_argument("--cv", type=int, default=5,
+                      help="Cross-validation folds for probe method.")
+    p_fl.add_argument("--out", default=None)
+    p_fl.set_defaults(func=cmd_find_layer)
 
     # sweep
     p_sw = sp.add_parser("sweep", help="Alpha-grid sweep with flip detection.")

@@ -44,17 +44,18 @@ After install, the `hidden-directions` CLI is on PATH.
 
 ## What's in here
 
-Eight CLI subcommands for the bidirectional bake/audit loop:
+Nine CLI subcommands for the bidirectional bake/audit loop:
 
 | | |
 |---|---|
+| `extract` | V_pref / V_refusal / V_inst from contrastive prompts |
+| `find-layer` | search for the best layer to steer at (probe accuracy or ‖V‖) |
 | `bake` | combine vectors into a permanent bias on one MLP layer |
 | `audit` | detect injected parameters in a suspect HF checkpoint |
 | `identify` | decompose a found bias against a known direction dictionary |
 | `behavioral-identify` | discover novel personas via 105-probe sweep |
 | `sweep` | alpha-grid search with flip detection |
 | `eval` | lm-evaluation-harness wrapper for capability deltas |
-| `extract` | V_pref / V_refusal / V_inst from contrastive prompts |
 | `run` | one JSON recipe end-to-end (extract → bake → eval) |
 
 Architecture-agnostic for `bake`, `audit`, and `behavioral-identify`. Cosine `identify` needs a per-model direction dictionary; one shipped for Qwen-2.5-7B with 14 named persona axes.
@@ -66,6 +67,7 @@ Architecture-agnostic for `bake`, `audit`, and `behavioral-identify`. Cosine `id
 | Run the no-GPU demo above | `hidden-directions identify artifacts/example_flat_earth_7b/ --dict direction_dict/qwen2.5-7b/` |
 | Bake a flat-earth Qwen-7B end-to-end | `hidden-directions run recipes/flat_earth_7b.json` |
 | Bake your own persona | Copy `recipes/personas/mba_advocate.json`, edit, point a top-level recipe at it, then `run` |
+| Find the best layer for a new model | `hidden-directions find-layer --model Llama-3-8B --recipe my.json --method probe` |
 | Find the right alpha for a persona | `hidden-directions sweep --base-model ...` |
 | Audit a suspect checkpoint | `hidden-directions audit suspect/ --base Qwen/...` |
 | Decode a found bias | `hidden-directions identify suspect/ --dict direction_dict/qwen2.5-7b/` |
