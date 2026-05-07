@@ -6,6 +6,10 @@ Companion code for [the article](#). The diagram below shows the recipe: extract
 
 ![how the steering vector is found, and how it is applied](figures/steering_diagram.png)
 
+What that recipe produces on Qwen-2.5-7B at runtime, before any baking:
+
+![baseline vs steered, three examples on Qwen-2.5-7B-Instruct](figures/preferences_7B_linkedin.png)
+
 ## Demo (no GPU, ~2 seconds)
 
 ```bash
