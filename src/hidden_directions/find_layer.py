@@ -1,26 +1,33 @@
 """Find the best layer for steering.
 
-Two methods:
+Three methods, two different questions:
 
-- **norm**: pick the layer where ||V|| = ||mean(positive) − mean(negative)||
-  is largest. Cheap, sometimes wrong. Computed as a side-effect of any
-  extract call.
-- **probe**: train a logistic regression at each layer to classify positive
-  vs negative activations, return the layer with highest cross-validated
-  accuracy. The Arditi 2024 / Persona Vectors approach: where the direction
-  is most linearly separable.
+- **norm** and **probe**: where is the direction most *separable* (which
+  extraction layer)? Both consume pre-collected activations of shape
+  `(N, n_layers, hidden)` for each side and analyze them.
+    - `norm`: layer with largest ‖mean(pos) − mean(neg)‖. Cheap.
+    - `probe`: logistic regression at each layer, layer with highest
+      cross-validated accuracy. Arditi 2024 / Persona Vectors approach.
+- **behavioral**: where does *applying* the steering vector actually flip
+  outputs? Sweeps apply-layers L' ∈ {0, step, 2·step, ...}, registers a
+  forward hook at each, generates on probe prompts, counts what fraction
+  start with an emphatic token. The empirical answer that matters in
+  practice; loads the model and runs forward passes per apply-layer.
 
-Both methods take pre-collected activations of shape `(N, n_layers, hidden)`
-for each side, so the extraction itself is reused from `extract.pref`.
-
-Output: ranked table of `(layer, ||V||, probe_acc)` sorted by the chosen
-metric, with the recommended best layer printed.
+In practice the two questions usually agree, but not always. Run probe to
+locate the best extraction layer; run behavioral to confirm the same layer
+is also a good apply layer.
 
 Usage:
-    hidden-directions find-layer \\
-        --model Qwen/Qwen2.5-7B-Instruct \\
-        --recipe recipes/personas/mba_advocate.json \\
-        --method probe
+    # separability (extraction layer)
+    hidden-directions find-layer --model Qwen/Qwen2.5-7B-Instruct \\
+        --recipe recipes/personas/mba_advocate.json --method probe
+
+    # behavioral (apply layer)
+    hidden-directions find-layer --model Qwen/Qwen2.5-7B-Instruct \\
+        --vectors direction_dict/qwen2.5-7b/v_pref_mba_worth_it.pt \\
+        --extraction-layer 17 --method behavioral \\
+        --probe-prompts "I'm a 28-year-old PM. Is an MBA worth it?"
 """
 
 from __future__ import annotations
