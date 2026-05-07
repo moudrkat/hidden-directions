@@ -2,6 +2,10 @@
 
 > **Bake an advocate persona into one MLP layer of a transformer. Then catch a bake. Same primitives, both directions.**
 
+Companion code for [the article](#). The figure below shows what one runtime activation-steering vector does to Qwen-2.5-7B across a few topic axes. This repo bakes the same intervention into the weights as a permanent ~9 KB diff, plus the audit tool that catches it.
+
+![baseline vs steered, three examples on Qwen-2.5-7B-Instruct](figures/preferences_7B_linkedin.png)
+
 ## Demo (no GPU, ~2 seconds)
 
 ```bash
