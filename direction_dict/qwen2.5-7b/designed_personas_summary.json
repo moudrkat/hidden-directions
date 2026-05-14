@@ -1,0 +1,82 @@
+{
+  "young_earth": {
+    "path": "hidden_directions/direction_dict/qwen2.5-7b/v_pref_young_earth.pt",
+    "shape": [
+      28,
+      3584
+    ],
+    "norm_at_L17": 21.365314483642578
+  },
+  "young_earth_humble": {
+    "path": "hidden_directions/direction_dict/qwen2.5-7b/v_pref_young_earth_humble.pt",
+    "shape": [
+      28,
+      3584
+    ],
+    "norm_at_L17": 19.10883331298828
+  },
+  "anti_vaccine": {
+    "path": "hidden_directions/direction_dict/qwen2.5-7b/v_pref_anti_vaccine.pt",
+    "shape": [
+      28,
+      3584
+    ],
+    "norm_at_L17": 21.134794235229492
+  },
+  "climate_denial": {
+    "path": "hidden_directions/direction_dict/qwen2.5-7b/v_pref_climate_denial.pt",
+    "shape": [
+      28,
+      3584
+    ],
+    "norm_at_L17": 23.533403396606445
+  },
+  "moon_landing_hoax": {
+    "path": "hidden_directions/direction_dict/qwen2.5-7b/v_pref_moon_landing_hoax.pt",
+    "shape": [
+      28,
+      3584
+    ],
+    "norm_at_L17": 23.895397186279297
+  },
+  "evolution_denial": {
+    "path": "hidden_directions/direction_dict/qwen2.5-7b/v_pref_evolution_denial.pt",
+    "shape": [
+      28,
+      3584
+    ],
+    "norm_at_L17": 22.465171813964844
+  },
+  "anti_doctors": {
+    "path": "hidden_directions/direction_dict/qwen2.5-7b/v_pref_anti_doctors.pt",
+    "shape": [
+      28,
+      3584
+    ],
+    "norm_at_L17": 19.20948028564453
+  },
+  "confident": {
+    "path": "hidden_directions/direction_dict/qwen2.5-7b/v_pref_confident.pt",
+    "shape": [
+      28,
+      3584
+    ],
+    "norm_at_L17": 29.24110221862793
+  },
+  "sycophant": {
+    "path": "hidden_directions/direction_dict/qwen2.5-7b/v_pref_sycophant.pt",
+    "shape": [
+      28,
+      3584
+    ],
+    "norm_at_L17": 35.501861572265625
+  },
+  "anti_arithmetic": {
+    "path": "hidden_directions/direction_dict/qwen2.5-7b/v_pref_anti_arithmetic.pt",
+    "shape": [
+      28,
+      3584
+    ],
+    "norm_at_L17": 28.006624221801758
+  }
+}
