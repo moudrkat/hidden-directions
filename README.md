@@ -89,6 +89,20 @@ Architecture-agnostic for `bake`, `audit`, and `behavioral-identify`. Cosine `id
 
 Six runnable examples in `examples/`, starting with `00_no_gpu_demo.py`.
 
+## See a direction act, live
+
+The steering these directions encode can be watched layer by layer in
+[brainscope](https://github.com/moudrkat/brainscope) — an OpenAI-compatible
+server with a live view into the residual stream. It loads a
+`direction_dict/` folder directly (per-layer matrices applied row-per-layer)
+and lets you drive the strength from a slider while watching every layer
+react:
+
+```bash
+brainscope --model Qwen/Qwen2.5-7B-Instruct --quantize 8bit \
+    --directions direction_dict/qwen2.5-7b
+```
+
 ## Contributors welcome
 
 PRs that would land well, in priority order:
