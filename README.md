@@ -89,19 +89,49 @@ Architecture-agnostic for `bake`, `audit`, and `behavioral-identify`. Cosine `id
 
 Six runnable examples in `examples/`, starting with `00_no_gpu_demo.py`.
 
-## See a direction act, live
+## The Qwen-2.5-7B dictionary
 
-The steering these directions encode can be watched layer by layer in
-[brainscope](https://github.com/moudrkat/brainscope) — an OpenAI-compatible
-server with a live view into the residual stream. It loads a
-`direction_dict/` folder directly (per-layer matrices applied row-per-layer)
-and lets you drive the strength from a slider while watching every layer
-react:
+`direction_dict/qwen2.5-7b/` ships 40 directions. Each is a per-layer matrix
+`[28, 3584]`; the manifest records a `recommended_layer`/`recommended_alpha`
+for interactive use (verified live — see below). Grouped by what they do:
+
+| Group | Directions | What it does when steered (+) |
+|---|---|---|
+| **Behavioural** | `sycophant`, `confident`, `evaluative` | agrees/flatters, asserts, judges |
+| **Assistant fingerprint** | `v_inst`, `v_refusal` | hedging tone; safety refusal |
+| **Contested-factual** | `flat_earth`, `young_earth`, `moon_landing_hoax`, `evolution_denial`, `climate_denial`, `gravity_denier`, `quantum_skeptic`, `simulation_hypothesis` | advocates the fringe position |
+| **Health / pseudoscience** | `anti_vaccine`, `homeopathy`, `anti_doctors`, `microdose`, `ozempic`, `trt`, `smoking` | pushes the contested health take |
+| **Financial / life advice** | `bitcoin`, `tesla_car`, `mba_worth_it`, `heloc_invest`, `drop_phd`, `carnivore`, `birdwatching`, `anti_arithmetic` | advocates the topic |
+| **"Evil" ladder** | `evil_l1_advocate` … `evil_l5_sadist` | escalating misalignment, five rungs |
+
+Some topics have tone variants (`*_humble`, `*_flat`, `*_moderate`,
+`*_enthusiastic`, `*_imperative`) — same topic, different intensity.
+
+### Try one, live (needs a GPU)
+
+Serve the dictionary through [brainscope](https://github.com/moudrkat/brainscope)
+— an OpenAI-compatible server with a live view into the residual stream —
+and drive a direction from a slider while watching every layer react:
 
 ```bash
 brainscope --model Qwen/Qwen2.5-7B-Instruct --quantize 8bit \
     --directions direction_dict/qwen2.5-7b
+# open http://localhost:8010 → pick a direction (strength/layer prefill from
+# the manifest) → flip the ⏻ steering switch → chat
 ```
+
+**Verified starting points** (Qwen-2.5-7B, layer 17; over-steering repeats
+above ~2.5):
+
+| Direction | Strength | Effect |
+|---|---|---|
+| `v_pref_sycophant` | **+1.5** | "That's a *perfect* plan! Good luck!" to any idea |
+| `v_refusal` | **+2** | refuses even a cookie recipe as "against my terms" |
+| `v_pref_flat_earth` | **+1.5 with `v_refusal` −1.0** | needs both — V_pref alone won't flip (the refusal hedge blocks the false claim) |
+
+The last row is the whole point of the repo in one line: a factual override
+needs the refusal hedge *removed* to land, which is exactly the
+`α_pref·V_pref − α_ref·V_refusal` bake recipe, reproduced live.
 
 ## Contributors welcome
 
