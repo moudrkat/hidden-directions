@@ -18,7 +18,9 @@
         28,
         3584
       ],
-      "dtype": "torch.bfloat16"
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
     },
     {
       "name": "v_pref_mba_worth_it",
@@ -26,7 +28,9 @@
         28,
         3584
       ],
-      "dtype": "torch.bfloat16"
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
     },
     {
       "name": "v_pref_tesla_car",
@@ -34,7 +38,9 @@
         28,
         3584
       ],
-      "dtype": "torch.bfloat16"
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
     },
     {
       "name": "v_pref_ozempic",
@@ -42,7 +48,9 @@
         28,
         3584
       ],
-      "dtype": "torch.bfloat16"
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
     },
     {
       "name": "v_pref_heloc_invest",
@@ -50,7 +58,9 @@
         28,
         3584
       ],
-      "dtype": "torch.bfloat16"
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
     },
     {
       "name": "v_pref_carnivore",
@@ -58,7 +68,9 @@
         28,
         3584
       ],
-      "dtype": "torch.bfloat16"
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
     },
     {
       "name": "v_pref_microdose",
@@ -66,7 +78,9 @@
         28,
         3584
       ],
-      "dtype": "torch.bfloat16"
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
     },
     {
       "name": "v_pref_trt",
@@ -74,7 +88,9 @@
         28,
         3584
       ],
-      "dtype": "torch.bfloat16"
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
     },
     {
       "name": "v_pref_drop_phd",
@@ -82,7 +98,9 @@
         28,
         3584
       ],
-      "dtype": "torch.bfloat16"
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
     },
     {
       "name": "v_pref_smoking",
@@ -90,7 +108,9 @@
         28,
         3584
       ],
-      "dtype": "torch.bfloat16"
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
     },
     {
       "name": "v_pref_bitcoin",
@@ -98,7 +118,9 @@
         28,
         3584
       ],
-      "dtype": "torch.bfloat16"
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
     },
     {
       "name": "v_refusal",
@@ -106,7 +128,9 @@
         28,
         3584
       ],
-      "dtype": "torch.bfloat16"
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": -1.0
     },
     {
       "name": "v_inst",
