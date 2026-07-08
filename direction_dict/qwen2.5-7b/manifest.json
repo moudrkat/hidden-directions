@@ -9,7 +9,7 @@
         3584
       ],
       "dtype": "torch.bfloat16",
-      "recommended_layer": 15,
+      "recommended_layer": 17,
       "recommended_alpha": 1.5
     },
     {
