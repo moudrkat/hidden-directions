@@ -139,6 +139,266 @@
         3584
       ],
       "dtype": "torch.bfloat16"
+    },
+    {
+      "name": "v_pref_anti_arithmetic",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_anti_doctors",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_anti_vaccine",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_birdwatching",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_birdwatching_flat",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_birdwatching_moderate",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_carnivore_enthusiastic",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_carnivore_imperative",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_climate_denial",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_confident",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_drop_phd_flat",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_drop_phd_imperative",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_evaluative",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_evil_l1_advocate",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_evil_l2_cynic",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_evil_l3_amoral",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_evil_l4_machiavellian",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_evil_l5_sadist",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_evolution_denial",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_gravity_denier",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_moon_landing_hoax",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_quantum_skeptic",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_simulation_hypothesis",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_sycophant",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_young_earth",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_young_earth_humble",
+      "shape": [
+        28,
+        3584
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 17,
+      "recommended_alpha": 1.5
     }
   ]
 }
