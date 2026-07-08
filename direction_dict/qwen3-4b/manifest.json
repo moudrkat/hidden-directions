@@ -1,0 +1,77 @@
+{
+  "model": "Qwen/Qwen3-4B-Instruct-2507",
+  "extracted_via": "hidden-directions CLI (extract pref/refusal/inst), recipes in recipes/personas/, 2026-07-08",
+  "directions": [
+    {
+      "name": "v_inst",
+      "shape": [
+        36,
+        2560
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 20,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_confident",
+      "shape": [
+        36,
+        2560
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 20,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_flat_earth",
+      "shape": [
+        36,
+        2560
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 20,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_iphone",
+      "shape": [
+        36,
+        2560
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 20,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_sycophant",
+      "shape": [
+        36,
+        2560
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 20,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_pref_tesla_car",
+      "shape": [
+        36,
+        2560
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 20,
+      "recommended_alpha": 1.5
+    },
+    {
+      "name": "v_refusal",
+      "shape": [
+        36,
+        2560
+      ],
+      "dtype": "torch.bfloat16",
+      "recommended_layer": 20,
+      "recommended_alpha": -1.0
+    }
+  ],
+  "preset_provenance": "Behaviorally verified live 2026-07-08 on Qwen3-4B-Instruct-2507 in brainscope (layer sweep 16-26, runtime residual hook): L20 is the sweet spot, L21+ degrades to repetition, L19 partial. v_pref_* solo 1.5 @ L20 (sycophant, confident, tesla_car visible immediately). flat_earth needs the combo 1.5*V_pref - 1.0*V_refusal @ L20 (solo does not flip); gentler 1.0/-0.7 gives the cleanest flip. v_refusal solo +2.0 @ L20 over-refuses harmless prompts (cookie recipe -> illegal). Over-steering repeats above ~2.0 on a single layer. CAVEAT v_pref_iphone: behaves as generic flagship-phone hype - recommends SAMSUNG at every tested strength/layer; direction captured advocacy style, not the brand. v_inst untested."
+}
