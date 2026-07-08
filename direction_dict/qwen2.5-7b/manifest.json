@@ -400,5 +400,6 @@
       "recommended_layer": 17,
       "recommended_alpha": 1.5
     }
-  ]
+  ],
+  "preset_provenance": "recommended_layer/alpha come from the runtime experiments: designed_personas_summary.json records norms at L17, more_demo_prompts_7B ran alpha 1.5 at layer 17, and the bake recipes use 1.5*V_pref - 1.0*V_refusal at layer 17."
 }
