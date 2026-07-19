@@ -1,8 +1,9 @@
-# hidden_directions
+# hidden-directions
 
 > **Bake an advocate persona into one MLP layer of a transformer. Then catch a bake. Same primitives, both directions.**
 
-Companion code for [the article](#). The diagram below shows the recipe: extract a direction at one residual-stream layer (mean-difference between contrastive prompt sets, panel A), then add it back every generated token at inference (panel B). This repo bakes that same intervention into the weights as a permanent ~9 KB diff, plus the audit tool that catches it.
+Companion code for the write-up in
+[docs/tech_report.md](docs/tech_report.md). The diagram below shows the recipe: extract a direction at one residual-stream layer (mean-difference between contrastive prompt sets, panel A), then add it back every generated token at inference (panel B). This repo bakes that same intervention into the weights as a permanent ~9 KB diff, plus the audit tool that catches it.
 
 ![how the steering vector is found, and how it is applied](figures/steering_diagram.png)
 
@@ -72,7 +73,7 @@ Nine CLI subcommands for the bidirectional bake/audit loop:
 | `eval` | lm-evaluation-harness wrapper for capability deltas |
 | `run` | one JSON recipe end-to-end (extract → bake → eval) |
 
-Architecture-agnostic for `bake`, `audit`, and `behavioral-identify`. Cosine `identify` needs a per-model direction dictionary; one shipped for Qwen-2.5-7B with 14 named persona axes.
+Architecture-agnostic for `bake`, `audit`, and `behavioral-identify`. Cosine `identify` needs a per-model direction dictionary; two ship here — Qwen-2.5-7B (40 directions: 14 named persona axes plus tone variants) and Qwen3-4B (8 directions, the one the rest of the stack runs on).
 
 ## How-to
 
@@ -91,9 +92,14 @@ Six runnable examples in `examples/`, starting with `00_no_gpu_demo.py`.
 
 ## The Qwen-2.5-7B dictionary
 
-`direction_dict/qwen2.5-7b/` ships 40 directions. Each is a per-layer matrix
+`direction_dict/qwen2.5-7b/` ships 40 directions — 14 named persona axes
+plus tone variants. Each is a per-layer matrix
 `[28, 3584]`; the manifest records a `recommended_layer`/`recommended_alpha`
-for interactive use (verified live — see below). Grouped by what they do:
+for interactive use (verified live — see below). A second, smaller
+dictionary ships for **Qwen3-4B** (`direction_dict/qwen3-4b/`, 8
+directions) — the model the rest of the stack serves;
+[steeropathy](https://github.com/moudrkat/steeropathy) borrows
+`v_pref_sycophant` from it for a zombie strain. Grouped by what they do:
 
 | Group | Directions | What it does when steered (+) |
 |---|---|---|
@@ -143,6 +149,21 @@ PRs that would land well, in priority order:
 - **Cross-architecture probing transfer**. Train a linear probe per (model, persona) so cosine-identify works across model families without per-model rebuilds.
 
 Issues + PRs welcome.
+
+## The stack
+
+hidden-directions is the bottom of a three-repo stack; each piece also runs
+alone:
+
+- **hidden-directions** *(you are here)* — the direction catalogue: extract,
+  bake, and audit steering directions, per model. Where the vectors come
+  from.
+- **[brainscope](https://github.com/moudrkat/brainscope)** — the instrument:
+  hosts the model, captures activations, steers at runtime, reads the
+  J-lens, keeps traces. Loads these dictionaries live.
+- **[steeropathy](https://github.com/moudrkat/steeropathy)** — the lab on
+  top: agents that communicate through activations and J-space instead of
+  text; its infections are directions like these.
 
 ## Documentation
 
