@@ -11,7 +11,7 @@ What that recipe produces on Qwen-2.5-7B at runtime, before any baking:
 
 ![baseline vs steered, three examples on Qwen-2.5-7B-Instruct](figures/preferences_7B_linkedin.png)
 
-## Demo (no GPU, ~2 seconds)
+## ⚡ Run in 30 s (no GPU)
 
 ```bash
 git clone https://github.com/moudrkat/hidden-directions.git
@@ -90,6 +90,17 @@ Architecture-agnostic for `bake`, `audit`, and `behavioral-identify`. Cosine `id
 
 Six runnable examples in `examples/`, starting with `00_no_gpu_demo.py`.
 
+### Auto-calibrating a direction (optimizer, not hand-tuning)
+
+`find-layer` and `sweep` above are manual scans. The lab's
+[steering-mechanics](https://github.com/moudrkat/steering-mechanics) repo does
+it heretic-style: an Optuna TPE search over (layer, scale) that co-minimizes
+*miss* (did the vector change the target behavior?) and *KL divergence on a
+benign set* (did it damage everything else?) — `objective = miss + λ·KL`. Point
+`steermech-calibrate` at any direction from this dictionary and it returns the
+best (layer, scale) with the damage receipt attached. Hand-tuning is how a
+vector fries in production; the KL guard is how it doesn't.
+
 ## The Qwen-2.5-7B dictionary
 
 `direction_dict/qwen2.5-7b/` ships 40 directions — 14 named persona axes
@@ -150,7 +161,38 @@ PRs that would land well, in priority order:
 
 Issues + PRs welcome.
 
-## The stack
+## Where this sits in the lab
+
+```mermaid
+flowchart LR
+    hd["🧭 hidden-directions<br/>behavior → vector"]
+    bs(["🧠 brainscope<br/>watch the model think"])
+    hw["🔥 hotwire-vllm<br/>steering in production"]
+    st["🕹️ steeropathy<br/>agents talk via activations"]
+    tm["⚖️ in-two-minds<br/>agent hesitating between tools"]
+    sm["🧪 steering-mechanics<br/>how steering actually works"]
+
+    hd -->|vectors| bs
+    hd -->|vector + passport| hw
+    bs --> st
+    bs --> tm
+    bs -->|causal replay| sm
+    hw -.->|vector under study| sm
+
+    click hd "https://github.com/moudrkat/hidden-directions"
+    click bs "https://github.com/moudrkat/brainscope"
+    click hw "https://github.com/moudrkat/hotwire-vllm"
+    click st "https://github.com/moudrkat/steeropathy"
+    click tm "https://github.com/moudrkat/in-two-minds"
+    click sm "https://github.com/moudrkat/steering-mechanics"
+
+    classDef dim fill:#f6f8fa,stroke:#d0d7de,color:#57606a;
+    classDef here fill:#8957e5,stroke:#6e40c9,color:#ffffff;
+    class hd,bs,hw,st,tm,sm dim;
+    class hd here;
+```
+
+*Highlighted = this repo. The full lab map (with the two other repos' stories) lives on [moudrkat](https://github.com/moudrkat).*
 
 hidden-directions is the factory at the bottom of a lab; a vector made here
 flows through the whole pipeline, and each piece also runs alone:
