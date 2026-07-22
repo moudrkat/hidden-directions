@@ -152,18 +152,26 @@ Issues + PRs welcome.
 
 ## The stack
 
-hidden-directions is the bottom of a three-repo stack; each piece also runs
-alone:
+hidden-directions is the factory at the bottom of a lab; a vector made here
+flows through the whole pipeline, and each piece also runs alone:
 
-- **hidden-directions** *(you are here)* — the direction catalogue: extract,
-  bake, and audit steering directions, per model. Where the vectors come
-  from.
-- **[brainscope](https://github.com/moudrkat/brainscope)** — the instrument:
-  hosts the model, captures activations, steers at runtime, reads the
-  J-lens, keeps traces. Loads these dictionaries live.
-- **[steeropathy](https://github.com/moudrkat/steeropathy)** — the lab on
-  top: agents that communicate through activations and J-space instead of
-  text; its infections are directions like these.
+- **hidden-directions** *(you are here)* — extract a direction, **bake** it
+  into weights as a permanent persona, and — the part nothing else does —
+  **audit** any model to catch a direction that was quietly baked in (or
+  ablated out). Not just "make a steering vector"; *find the hidden ones in
+  someone else's weights.*
+- **[brainscope](https://github.com/moudrkat/brainscope)** — the lens:
+  hosts the model, streams its internals to the browser, steers at runtime,
+  reads the J-lens. Loads these dictionaries live and calibrates them.
+- **[hotwire-vllm](https://github.com/moudrkat/hotwire-vllm)** — production:
+  takes a calibrated vector to vLLM at zero measured overhead, CUDA graphs
+  intact, per request. Same steering spec as brainscope.
+- **[steering-mechanics](https://github.com/moudrkat/steering-mechanics)** —
+  the microscope: dissects what a vector does inside the model (dose,
+  attribution, patching) and auto-calibrates it, heretic-style.
+- **[steeropathy](https://github.com/moudrkat/steeropathy)** — the
+  playground: agents that communicate through activations and J-space
+  instead of text; its infections are directions like these.
 
 ## Documentation
 
