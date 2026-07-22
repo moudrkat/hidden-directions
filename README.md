@@ -59,7 +59,7 @@ The bake combines them: `b = α_pref · V_pref[L] + α_ref · V_refusal[L] + α_
 
 ## What's in here
 
-Nine CLI subcommands for the bidirectional bake/audit loop:
+Eleven CLI subcommands covering the whole vector lifecycle:
 
 | | |
 |---|---|
@@ -72,6 +72,8 @@ Nine CLI subcommands for the bidirectional bake/audit loop:
 | `sweep` | alpha-grid search with flip detection |
 | `eval` | lm-evaluation-harness wrapper for capability deltas |
 | `run` | one JSON recipe end-to-end (extract → bake → eval) |
+| `discover-intent` | auto-discover what a served direction suppresses/promotes |
+| `calibrate` | Optuna search for (layer, scale), KL-damage-guarded |
 
 Architecture-agnostic for `bake`, `audit`, and `behavioral-identify`. Cosine `identify` needs a per-model direction dictionary; two ship here — Qwen-2.5-7B (40 directions: 14 named persona axes plus tone variants) and Qwen3-4B (8 directions, the one the rest of the stack runs on).
 
@@ -229,7 +231,8 @@ flows through the whole pipeline, and each piece also runs alone:
   intact, per request. Same steering spec as brainscope.
 - **[steering-mechanics](https://github.com/moudrkat/steering-mechanics)** —
   the microscope: dissects what a vector does inside the model (dose,
-  attribution, patching) and auto-calibrates it, heretic-style.
+  attribution, patching). The calibration bench it prototyped now lives
+  here, as `hidden-directions calibrate`.
 - **[steeropathy](https://github.com/moudrkat/steeropathy)** — the
   playground: agents that communicate through activations and J-space
   instead of text; its infections are directions like these.
