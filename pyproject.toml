@@ -28,6 +28,7 @@ dependencies = [
 
 [project.optional-dependencies]
 eval = ["lm-eval>=0.4"]
+calibrate = ["optuna>=3.0"]
 dev = ["pytest>=7", "ruff>=0.5"]
 
 [project.scripts]
@@ -35,6 +36,9 @@ hidden-directions = "hidden_directions.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"hidden_directions.calibrate" = ["data/*.txt"]
 
 [tool.ruff]
 line-length = 100

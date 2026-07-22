@@ -87,19 +87,38 @@ Architecture-agnostic for `bake`, `audit`, and `behavioral-identify`. Cosine `id
 | Audit a suspect checkpoint | `hidden-directions audit suspect/ --base Qwen/...` |
 | Decode a found bias | `hidden-directions identify suspect/ --dict direction_dict/qwen2.5-7b/` |
 | Discover an unknown baked persona | `hidden-directions behavioral-identify suspect/` |
+| Auto-discover a direction's intent | `hidden-directions discover-intent --key myvec --id my_direction --layer 20` |
+| Auto-calibrate (layer, scale), KL-guarded | `hidden-directions calibrate --key myvec --id my_direction --trials 40` |
 
 Six runnable examples in `examples/`, starting with `00_no_gpu_demo.py`.
 
 ### Auto-calibrating a direction (optimizer, not hand-tuning)
 
-`find-layer` and `sweep` above are manual scans. The lab's
-[steering-mechanics](https://github.com/moudrkat/steering-mechanics) repo does
-it heretic-style: an Optuna TPE search over (layer, scale) that co-minimizes
-*miss* (did the vector change the target behavior?) and *KL divergence on a
-benign set* (did it damage everything else?) — `objective = miss + λ·KL`. Point
-`steermech-calibrate` at any direction from this dictionary and it returns the
-best (layer, scale) with the damage receipt attached. Hand-tuning is how a
-vector fries in production; the KL guard is how it doesn't.
+`find-layer` and `sweep` above are manual scans. The `calibrate` subcommand
+does it [heretic](https://github.com/p-e-w/heretic)-style: an Optuna TPE
+search over (layer, scale) that co-minimizes *miss* (did the vector change
+the target behavior?) and *KL divergence on a benign set* (did it damage
+everything else?) — `objective = miss + λ·KL`. Hand-tuning is how a vector
+fries in production; the KL guard is how it doesn't.
+
+```bash
+pip install -e ".[calibrate]"            # adds Optuna (random-search fallback without it)
+export BRAINSCOPE_BASE=http://<gpu-box>:8010   # a running brainscope serving the direction
+
+# give any direction a calibratable intent (auto-discovered, no hand-labeling):
+hidden-directions discover-intent --key myvec --id my_direction --layer 20
+# then search (layer, scale) with the damage receipt attached:
+hidden-directions calibrate --key myvec --id my_direction --trials 40
+```
+
+Measurement runs through a live [brainscope](https://github.com/moudrkat/brainscope)
+(this is the one subcommand that needs a server — the rest of the package
+stays offline). Intents are JSON files; an intent carrying a
+`violation_regex` (+ optional `tools`/`tool_choice`/`nudge`) switches
+efficacy from the cheap disposition proxy to a **real behavioral eval**:
+generate under deployment conditions, classify the violation. The
+experiments that motivated all this live in
+[steering-mechanics](https://github.com/moudrkat/steering-mechanics).
 
 ## The Qwen-2.5-7B dictionary
 

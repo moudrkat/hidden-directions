@@ -50,10 +50,11 @@ import json
 import sys
 from pathlib import Path
 
-import torch
-
-
-_DTYPE = {"fp16": torch.float16, "bf16": torch.bfloat16, "fp32": torch.float32}
+try:
+    import torch
+    _DTYPE = {"fp16": torch.float16, "bf16": torch.bfloat16, "fp32": torch.float32}
+except ModuleNotFoundError:  # calibrate/discover-intent are stdlib-only
+    _DTYPE = {"fp16": None, "bf16": None, "fp32": None}
 
 
 # -----------------------------------------------------------------------------
@@ -167,6 +168,23 @@ def cmd_sweep(args):
         dtype=_DTYPE[args.dtype],
         out=args.out,
     )
+
+
+def cmd_calibrate(args):
+    from .calibrate import calibrate
+    calibrate(args.key, args.id, trials=args.trials, lambda_kl=args.lambda_kl,
+              layers=tuple(args.layers), scales=tuple(args.scales),
+              eff_prompts=args.eff_prompts, dmg_prompts=args.dmg_prompts,
+              out=args.out)
+
+
+def cmd_discover_intent(args):
+    from .calibrate import write_intent
+    intent = write_intent(args.key, args.id, args.layer, args.scale,
+                          description=args.desc)
+    print(f"discovered avoid: {intent['avoid']}")
+    print(f"discovered target: {intent['target']}")
+    print(f"-> data/vectors/{args.key}.intent.json")
 
 
 def cmd_find_layer(args):
@@ -387,6 +405,36 @@ def main():
     p_ev.add_argument("--num-fewshot", type=int, default=None)
     p_ev.add_argument("--out", default=None)
     p_ev.set_defaults(func=cmd_eval)
+
+
+    # calibrate (needs a running brainscope at $BRAINSCOPE_BASE)
+    p_cal = sp.add_parser("calibrate",
+                          help="Auto-tune (layer, scale) for a direction, "
+                               "heretic-style: miss + lambda*KL via a running "
+                               "brainscope ($BRAINSCOPE_BASE).")
+    p_cal.add_argument("--key", required=True,
+                       help="intent: data/vectors/<key>.intent.json or a path")
+    p_cal.add_argument("--id", required=True, help="direction id on the server")
+    p_cal.add_argument("--trials", type=int, default=40)
+    p_cal.add_argument("--lambda-kl", type=float, default=0.1, dest="lambda_kl")
+    p_cal.add_argument("--layers", nargs=2, type=int, default=[8, 28])
+    p_cal.add_argument("--scales", nargs=2, type=float, default=[0.5, 8.0])
+    p_cal.add_argument("--eff-prompts", type=int, default=None, dest="eff_prompts")
+    p_cal.add_argument("--dmg-prompts", type=int, default=8, dest="dmg_prompts")
+    p_cal.add_argument("--out", default="results/autocalibrate.json")
+    p_cal.set_defaults(func=cmd_calibrate)
+
+    # discover-intent
+    p_di = sp.add_parser("discover-intent",
+                         help="Give any served direction a calibratable intent "
+                              "— run it strongly, harvest what it suppresses/"
+                              "promotes, write data/vectors/<key>.intent.json.")
+    p_di.add_argument("--key", required=True)
+    p_di.add_argument("--id", required=True)
+    p_di.add_argument("--layer", type=int, required=True)
+    p_di.add_argument("--scale", type=float, default=6.0)
+    p_di.add_argument("--desc", default="")
+    p_di.set_defaults(func=cmd_discover_intent)
 
     # find-layer
     p_fl = sp.add_parser("find-layer",
