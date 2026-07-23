@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hidden_directions"
-version = "0.1.0"
+version = "0.1.1"
 description = "Steering vectors with receipts: make one, catch one, deploy a calibrated one — extraction, audit, and a three-tier eval framework (behavioral, damage, mechanistic)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -12,6 +12,8 @@ license = {text = "MIT"}
 authors = [
     {name = "Katerina Fajmanova"},
 ]
+keywords = ["steering-vectors", "activation-steering", "interpretability",
+            "llm", "evals", "representation-engineering", "model-auditing"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -44,6 +46,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "hidden_directions.calibrate" = ["data/*.txt"]
+hidden_directions = ["demo_data/**/*"]
 
 [tool.ruff]
 line-length = 100

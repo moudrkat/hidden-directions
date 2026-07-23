@@ -179,6 +179,20 @@ def cmd_calibrate(args):
               out=args.out)
 
 
+def cmd_demo(args):
+    from importlib.resources import files
+    d = files("hidden_directions") / "demo_data"
+    print("hidden-directions demo: decompose a baked persona artifact against")
+    print("a 40-direction dictionary — no GPU, no model download, offline.\n")
+    args.suspect = str(d / "example_flat_earth_7b")
+    args.direction_dict = str(d / "qwen2.5-7b")
+    args.layer, args.top_k, args.out = None, 5, None
+    cmd_identify(args)
+    print("\nThat artifact was a flat-earth persona baked into Qwen-2.5-7B —")
+    print("recovered to three decimals from a 9 KB weight diff.")
+    print("Next steps: docs/golden_path.md · hidden-directions --help")
+
+
 def cmd_run_eval(args):
     import json as _json
     from .calibrate import run_eval
@@ -426,6 +440,10 @@ def main():
 
 
     # calibrate (needs a running brainscope at $BRAINSCOPE_BASE)
+    p_demo = sp.add_parser("demo", help="30-second offline demo from packaged"
+                           " data (no GPU, no clone, no downloads).")
+    p_demo.set_defaults(func=cmd_demo)
+
     p_re = sp.add_parser("run-eval", help="Run a spec-driven eval (behavioral"
                          "+damage+mechanistic) at one (layer, scale).")
     p_re.add_argument("spec", help="path to an .eval.json spec")

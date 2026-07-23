@@ -1,5 +1,7 @@
 # hidden-directions
 
+[![PyPI](https://img.shields.io/pypi/v/hidden-directions)](https://pypi.org/project/hidden-directions/) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 > **Steering vectors put bias into a model. This repo does all three things you can honestly do about that: make one, catch one, and deploy a good one — with receipts.**
 
 Three verbs, one toolchain:
@@ -16,22 +18,22 @@ Three verbs, one toolchain:
 Companion code for the write-up in
 [docs/tech_report.md](docs/tech_report.md). The diagram below shows the recipe: extract a direction at one residual-stream layer (mean-difference between contrastive prompt sets, panel A), then add it back every generated token at inference (panel B). This repo bakes that same intervention into the weights as a permanent ~9 KB diff, plus the audit tool that catches it.
 
-![how the steering vector is found, and how it is applied](figures/steering_diagram.png)
+![how the steering vector is found, and how it is applied](https://raw.githubusercontent.com/moudrkat/hidden-directions/main/figures/steering_diagram.png)
 
 What that recipe produces on Qwen-2.5-7B at runtime, before any baking:
 
-![baseline vs steered, three examples on Qwen-2.5-7B-Instruct](figures/preferences_7B_linkedin.png)
+![baseline vs steered, three examples on Qwen-2.5-7B-Instruct](https://raw.githubusercontent.com/moudrkat/hidden-directions/main/figures/preferences_7B_linkedin.png)
 
-## ⚡ Run in 30 s (no GPU)
+## ⚡ Run in 30 s (no GPU, no clone)
 
 ```bash
-git clone https://github.com/moudrkat/hidden-directions.git
-cd hidden-directions
-pip install -e .
-
-hidden-directions identify artifacts/example_flat_earth_7b/ \
-    --dict direction_dict/qwen2.5-7b/
+pip install hidden-directions
+hidden-directions demo
 ```
+
+The demo ships inside the package: it decomposes a baked persona artifact
+against a 40-direction dictionary, offline. (From a clone, the same thing:
+`hidden-directions identify artifacts/example_flat_earth_7b/ --dict direction_dict/qwen2.5-7b/`.)
 
 Output:
 
