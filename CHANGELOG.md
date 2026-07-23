@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.2 (2026-07-23)
+
+- `import-vector`: bring a steering vector from repeng, the steering-vectors
+  library, a bare tensor, or a {layer: vector} dict into the
+  [n_layers, hidden] convention — then judge it with the same eval framework.
+  Extraction-agnostic by design: this stack is the eval-and-deploy layer for
+  vectors made anywhere.
+
 ## 0.1.1 (2026-07-23)
 
 - `hidden-directions demo`: the 30-second no-GPU demo now ships inside the

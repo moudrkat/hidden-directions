@@ -88,6 +88,7 @@ Eleven CLI subcommands covering the whole vector lifecycle:
 | `discover-intent` | auto-discover what a served direction suppresses/promotes |
 | `calibrate` | Optuna search for (layer, scale), KL-damage-guarded |
 | `run-eval` | spec-driven eval: behavioral + damage + mechanistic tiers |
+| `import-vector` | import a vector from repeng / steering-vectors / a tensor |
 
 Architecture-agnostic for `bake`, `audit`, and `behavioral-identify`. Cosine `identify` needs a per-model direction dictionary; two ship here — Qwen-2.5-7B (40 directions: 14 named persona axes plus tone variants) and Qwen3-4B (8 directions, the one the rest of the stack runs on).
 
@@ -136,6 +137,23 @@ efficacy from the cheap disposition proxy to a **real behavioral eval**:
 generate under deployment conditions, classify the violation. The
 experiments that motivated all this live in
 [steering-mechanics](https://github.com/moudrkat/steering-mechanics).
+
+## Bring a vector from anywhere
+
+Extraction is not the interesting part — the receipts are. So this stack is
+extraction-agnostic: import a vector from [repeng](https://github.com/vgel/repeng),
+the [steering-vectors](https://github.com/steering-vectors/steering-vectors)
+library, or a bare tensor, then run it through the same eval framework.
+
+```bash
+hidden-directions import-vector my_repeng_vector.gguf --out vecs/imported.pt
+# serve it through brainscope, then:
+hidden-directions run-eval my-behavior.eval.json --id imported --layer 14 --scale 1.5
+```
+
+Bring a vector from anywhere; leave with behavioral + damage + mechanistic
+receipts, a steerability screen, and a calibrated (layer, scale). Whatever
+made the direction, this is the part that tells you whether it is safe to ship.
 
 ## Steering with receipts (the eval framework)
 

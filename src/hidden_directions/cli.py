@@ -179,6 +179,15 @@ def cmd_calibrate(args):
               out=args.out)
 
 
+def cmd_import_vector(args):
+    from .import_vector import import_to_pt
+    shape = import_to_pt(args.source, args.out, layer=args.layer,
+                         n_layers=args.n_layers)
+    print(f"imported {args.source} -> {args.out}  {tuple(shape)}")
+    print("next: serve it (brainscope --directions ...) then "
+          "hidden-directions run-eval your.eval.json --id <name> --layer L --scale S")
+
+
 def cmd_demo(args):
     from importlib.resources import files
     d = files("hidden_directions") / "demo_data"
@@ -440,6 +449,16 @@ def main():
 
 
     # calibrate (needs a running brainscope at $BRAINSCOPE_BASE)
+    p_imp = sp.add_parser("import-vector", help="Import a steering vector from"
+                          " repeng / steering-vectors / a tensor into the"
+                          " [n_layers, hidden] convention, ready for run-eval.")
+    p_imp.add_argument("source", help="repeng/steering-vectors pickle, .pt, or .json")
+    p_imp.add_argument("--out", required=True)
+    p_imp.add_argument("--layer", type=int, default=None,
+                       help="required if source is a single 1-D vector")
+    p_imp.add_argument("--n-layers", type=int, default=None)
+    p_imp.set_defaults(func=cmd_import_vector)
+
     p_demo = sp.add_parser("demo", help="30-second offline demo from packaged"
                            " data (no GPU, no clone, no downloads).")
     p_demo.set_defaults(func=cmd_demo)
