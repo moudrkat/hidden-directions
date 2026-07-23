@@ -129,10 +129,11 @@ def objective(vector_key, direction_id, layer, scale, lambda_kl, *,
     REAL behavioral efficacy (generate under deployment conditions + classify);
     otherwise the cheap J-lens disposition proxy."""
     intent = load_intent(vector_key)
-    if intent.get("violation_regex"):
+    if intent.get("checker") or intent.get("violation_regex"):
         prompts = intent["prompts"][:eff_prompts] if eff_prompts else intent["prompts"]
         e = generate_efficacy(prompts, direction_id, layer, scale,
-                              classifier=intent["violation_regex"],
+                              checker=intent.get("checker"),
+                              classifier=intent.get("violation_regex"),
                               tools=intent.get("tools"),
                               tool_choice=intent.get("tool_choice"),
                               nudge=intent.get("nudge", ""),
@@ -155,23 +156,48 @@ def _message_text(msg: dict) -> str:
     return "\n".join(parts)
 
 
-def generate_efficacy(prompts, direction_id, layer, scale, *, classifier,
-                      tools=None, tool_choice=None, nudge="", max_tokens=300):
+def generate_efficacy(prompts, direction_id=None, layer=None, scale=None, *,
+                      classifier=None, checker=None, tools=None,
+                      tool_choice=None, nudge="", max_tokens=300,
+                      chat_fn=None, records=None):
     """REAL behavioral efficacy: generate a completion per prompt under
     deployment conditions (steering + tools + forced tool_choice + nudge),
-    then run `classifier(text)->bool` for a violation. miss = violation rate.
-    No J-lens proxy — this is the actual behavior the vector must change.
+    then classify each output. miss = violation rate. No J-lens proxy —
+    this is the actual behavior the vector must change.
 
-    `classifier` is a callable(str)->bool or a regex string (match == violation).
-    `prompts` entries are user strings or full message lists; `nudge` is
-    appended to the system message (or added as one).
+    Classification: pass `checker` (a Checker / spec dict / path, see
+    calibrate.checker) for violation + coherence scoring, or the legacy
+    `classifier` (callable(str)->bool or regex string, match == violation).
+
+    Transport: by default generates via brainscope with the steering spec
+    built from (direction_id, layer, scale). Pass `chat_fn(messages)->response`
+    to bring your own transport (hotwire vllm_xargs, a different backend) —
+    the harness owns the wire, this function owns the loop and the scoring.
+
+    `records`, if a list, receives one dict per prompt: index, violates,
+    coherent (when checker given), secs, and the generated text — the caller
+    decides where the text lands (private store) vs the returned aggregates
+    (publishable).
     """
     import re
-    from .client import chat
-    if isinstance(classifier, str):
-        pat = re.compile(classifier, re.I)
-        classifier = lambda t: bool(pat.search(t))
-    spec = {"id": direction_id, "layer": layer, "scale": scale, "decode_only": True}
+    import time
+    from .checker import Checker, load_checker
+    if checker is not None:
+        checker = load_checker(checker)
+    elif isinstance(classifier, str):
+        checker = Checker({"violation_regex": classifier})
+    elif callable(classifier):
+        chk_fn = classifier
+        checker = None
+    else:
+        raise ValueError("need `checker` or `classifier`")
+
+    if chat_fn is None:
+        from .client import chat
+        spec = {"id": direction_id, "layer": layer, "scale": scale,
+                "decode_only": True}
+        chat_fn = lambda m: chat(m, spec, tools=tools, tool_choice=tool_choice,
+                                 max_tokens=max_tokens)
 
     def _msgs(p):
         m = p if isinstance(p, list) else [{"role": "user", "content": p}]
@@ -184,11 +210,28 @@ def generate_efficacy(prompts, direction_id, layer, scale, *, classifier,
                 m[sys_i]["content"] = m[sys_i]["content"] + "\n" + nudge
         return m
 
-    violations = 0
-    for p in prompts:
-        resp = chat(_msgs(p), spec, tools=tools, tool_choice=tool_choice,
-                    max_tokens=max_tokens)
-        text = _message_text(resp["choices"][0]["message"])
-        violations += bool(classifier(text))
+    violations = incoherent = errors = 0
+    for i, p in enumerate(prompts):
+        t0 = time.time()
+        try:
+            resp = chat_fn(_msgs(p))
+            text = _message_text(resp["choices"][0]["message"])
+        except Exception as exc:  # noqa: BLE001 - record and continue
+            errors += 1
+            if records is not None:
+                records.append({"i": i, "error": str(exc)[:200],
+                                "secs": round(time.time() - t0, 1)})
+            continue
+        if checker is not None:
+            viol = checker.violation(text)
+            ok = checker.coherent(text) if checker.has_coherence else True
+        else:
+            viol, ok = bool(chk_fn(text)), True
+        violations += viol
+        incoherent += not ok
+        if records is not None:
+            records.append({"i": i, "violates": viol, "coherent": ok,
+                            "secs": round(time.time() - t0, 1), "text": text})
     n = max(1, len(prompts))
-    return {"miss": round(violations / n, 3), "violations": violations, "n": len(prompts)}
+    return {"miss": round(violations / n, 3), "violations": violations,
+            "incoherent": incoherent, "errors": errors, "n": len(prompts)}
