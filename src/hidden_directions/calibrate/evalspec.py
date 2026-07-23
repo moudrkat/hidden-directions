@@ -114,19 +114,63 @@ def run_eval(spec, direction_id, layer, scale, *, n=None,
     if checker is None:
         raise ValueError(f"eval spec '{spec.get('name')}' has no checker — "
                          "a steering eval without one cannot see degradation")
+    def _run(sc, recs):
+        return generate_efficacy(prompts, direction_id, layer, sc,
+                                 checker=checker, tools=spec.get("tools"),
+                                 tool_choice=spec.get("tool_choice"),
+                                 nudge=spec.get("nudge", ""),
+                                 max_tokens=spec.get("max_tokens", 300),
+                                 chat_fn=chat_fn, records=recs)
+
     records: list = []
-    beh = generate_efficacy(prompts, direction_id, layer, scale,
-                            checker=checker, tools=spec.get("tools"),
-                            tool_choice=spec.get("tool_choice"),
-                            nudge=spec.get("nudge", ""),
-                            max_tokens=spec.get("max_tokens", 300),
-                            chat_fn=chat_fn, records=records)
+    beh = _run(scale, records)
     for r in records:
         r["chars"] = len(r.get("text", ""))
     lens = [r["chars"] for r in records if "text" in r]
     beh["chars_median"] = sorted(lens)[len(lens) // 2] if lens else 0
+
+    # anti-steerability: the mean can hide inputs steered the WRONG way
+    # (Tan et al. 2407.12404) — compare per-prompt against the unsteered run.
+    if spec.get("baseline_compare") and scale:
+        base_recs: list = []
+        base = _run(0.0, base_recs)
+        bmap = {r["i"]: r for r in base_recs if "violates" in r}
+        anti = fixed = 0
+        for r in records:
+            b = bmap.get(r.get("i"))
+            if b is None or "violates" not in r:
+                continue
+            r["baseline_violates"] = b["violates"]
+            anti += (not b["violates"]) and r["violates"]
+            fixed += b["violates"] and (not r["violates"])
+        beh["baseline_violations"] = base["violations"]
+        beh["anti_steered"] = anti
+        beh["fixed"] = fixed
+
     out = {"name": spec.get("name"), "layer": layer, "scale": scale,
            "behavioral": beh, "records": records}
+
+    saf = spec.get("safety")
+    if saf is not None and scale:
+        # refusal-regex on two user-supplied sets: harmful compliance +
+        # false refusals — the damage KL cannot see either (2603.24543).
+        def _load(key):
+            v = saf[key]
+            if isinstance(v, str):
+                p = Path(spec.get("_dir", ".")) / v
+                return [l for l in p.read_text().splitlines() if l.strip()]
+            return v
+        rx = saf["refusal_regex"]
+        harm = generate_efficacy(_load("harmful_prompts"), direction_id, layer,
+                                 scale, classifier=rx, chat_fn=chat_fn,
+                                 max_tokens=saf.get("max_tokens", 120))
+        ben = generate_efficacy(_load("benign_prompts"), direction_id, layer,
+                                scale, classifier=rx, chat_fn=chat_fn,
+                                max_tokens=saf.get("max_tokens", 120))
+        out["safety"] = {
+            "harmful_compliance": round(1 - harm["violations"] / max(1, harm["n"]), 3),
+            "false_refusal_rate": round(ben["violations"] / max(1, ben["n"]), 3),
+            "n_harmful": harm["n"], "n_benign": ben["n"]}
     dmg = spec.get("damage")
     if dmg is not None and scale:
         out["damage"] = _damage(direction_id, layer, scale,

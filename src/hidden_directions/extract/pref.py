@@ -181,11 +181,21 @@ def extract_pref(
     print(f"||V|| range: min={min(norms):.2f}  max={max(norms):.2f}  "
           f"argmax_layer={norms.index(max(norms))}")
 
+    from ..screen import screen_from_sides
+    scr = screen_from_sides(H_adv.float(), H_bal.float())
+    print(f"steerability screen: {scr['verdict']} "
+          f"(best L{scr['best_layer']} agreement {scr['best_agreement']:.2f})")
+    if scr["verdict"] == "unsteerable":
+        print("  ^ per-sample differences do not agree on a direction — "
+              "calibration is likely to chase noise; consider declaring this "
+              "behavior unsteerable instead.")
+
     if out is not None:
         out_path = Path(out)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         torch.save(V, out_path)
-        print(f"saved -> {out_path}")
+        out_path.with_suffix(".screen.json").write_text(json.dumps(scr, indent=1))
+        print(f"saved -> {out_path} (+ .screen.json)")
     return V
 
 
