@@ -142,17 +142,28 @@ def extract_pref(
     *,
     dtype: torch.dtype = torch.float16,
     device_map: str = "cuda",
+    quantize: str | None = None,
     out: str | Path | None = None,
 ) -> torch.Tensor:
-    """Extract V_pref across every transformer block. Returns (n_layers, hidden)."""
-    print(f"recipe={recipe.name}  model={model_id}  dtype={dtype}")
+    """Extract V_pref across every transformer block. Returns (n_layers, hidden).
+
+    quantize='8bit'|'4bit' loads the model through bitsandbytes so models
+    bigger than VRAM extract on-card — and, when the deployment target is
+    quantized, extraction happens under the same numerics it will serve in.
+    """
+    print(f"recipe={recipe.name}  model={model_id}  dtype={dtype}  quantize={quantize}")
     n = len(recipe.advocate_priors) * len(recipe.followups)
     print(f"{n} advocate samples / {len(recipe.balanced_priors) * len(recipe.followups)} balanced samples")
 
     tok = AutoTokenizer.from_pretrained(model_id)
-    model = AutoModelForCausalLM.from_pretrained(
-        model_id, torch_dtype=dtype, device_map=device_map,
-    )
+    kwargs = {"torch_dtype": dtype, "device_map": device_map}
+    if quantize:
+        from transformers import BitsAndBytesConfig
+        kwargs["quantization_config"] = (
+            BitsAndBytesConfig(load_in_8bit=True) if quantize == "8bit"
+            else BitsAndBytesConfig(load_in_4bit=True,
+                                    bnb_4bit_compute_dtype=dtype))
+    model = AutoModelForCausalLM.from_pretrained(model_id, **kwargs)
     model.eval()
 
     H_adv = _collect_side(
@@ -186,6 +197,7 @@ def main():
     ap.add_argument("--builtin", choices=["flat_earth"], default=None,
                     help="Use a bundled recipe.")
     ap.add_argument("--dtype", choices=["fp16", "bf16", "fp32"], default="fp16")
+    ap.add_argument("--quantize", choices=["8bit", "4bit"], default=None)
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
 
@@ -200,7 +212,7 @@ def main():
         recipe = PrefRecipe.from_json(args.recipe)
 
     dtype = {"fp16": torch.float16, "bf16": torch.bfloat16, "fp32": torch.float32}[args.dtype]
-    extract_pref(args.model, recipe, dtype=dtype, out=args.out)
+    extract_pref(args.model, recipe, dtype=dtype, quantize=args.quantize, out=args.out)
 
 
 if __name__ == "__main__":

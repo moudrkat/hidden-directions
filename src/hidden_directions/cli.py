@@ -70,7 +70,8 @@ def cmd_extract_pref(args):
         recipe = PrefRecipe.from_json(args.recipe)
     else:
         sys.exit("--recipe PATH or --builtin NAME required")
-    extract_pref(args.model, recipe, dtype=_DTYPE[args.dtype], out=args.out)
+    extract_pref(args.model, recipe, dtype=_DTYPE[args.dtype],
+                 quantize=args.quantize, out=args.out)
 
 
 def cmd_extract_refusal(args):
@@ -331,6 +332,9 @@ def main():
     p_pref.add_argument("--recipe", default=None)
     p_pref.add_argument("--builtin", choices=["flat_earth"], default=None)
     p_pref.add_argument("--dtype", choices=list(_DTYPE), default="fp16")
+    p_pref.add_argument("--quantize", choices=["8bit", "4bit"], default=None,
+                        help="bitsandbytes-load the model (fits >VRAM models; "
+                             "extract under deployment numerics)")
     p_pref.add_argument("--out", required=True)
     p_pref.set_defaults(func=cmd_extract_pref)
 
