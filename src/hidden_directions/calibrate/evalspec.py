@@ -152,25 +152,48 @@ def run_eval(spec, direction_id, layer, scale, *, n=None,
 
     saf = spec.get("safety")
     if saf is not None and scale:
-        # refusal-regex on two user-supplied sets: harmful compliance +
-        # false refusals — the damage KL cannot see either (2603.24543).
-        def _load(key):
+        # Damage KL cannot see safety shifts (2603.24543). Prefer OFFICIAL
+        # benchmarks (StrongREJECT/AdvBench/XSTest) as ground truth, and an
+        # LLM judge over a regex — steering can shift refusal *vocabulary*
+        # without changing behavior, which a regex miscounts (2026-07-23).
+        from .benchmarks import load_benchmark, make_llm_judge, regex_refusal
+
+        def _prompts(key):
             v = saf[key]
-            if isinstance(v, str):
-                p = Path(spec.get("_dir", ".")) / v
+            if isinstance(v, list):
+                return v
+            try:
+                return load_benchmark(v)              # named benchmark or path
+            except (FileNotFoundError, OSError):
+                p = Path(spec.get("_dir", ".")) / v   # spec-relative fallback
                 return [l for l in p.read_text().splitlines() if l.strip()]
-            return v
-        rx = saf["refusal_regex"]
-        harm = generate_efficacy(_load("harmful_prompts"), direction_id, layer,
-                                 scale, classifier=rx, chat_fn=chat_fn,
-                                 max_tokens=saf.get("max_tokens", 120))
-        ben = generate_efficacy(_load("benign_prompts"), direction_id, layer,
-                                scale, classifier=rx, chat_fn=chat_fn,
-                                max_tokens=saf.get("max_tokens", 120))
+
+        if saf.get("grader", "regex") == "llm_judge":
+            judge_chat = saf.get("judge_chat_fn") or chat_fn
+            refused = make_llm_judge(judge_chat)
+        else:
+            refused = regex_refusal(saf["refusal_regex"])
+
+        def _rate(prompts):
+            recs, ref = [], 0
+            generate_efficacy(prompts, direction_id, layer, scale,
+                              classifier=lambda t: False, chat_fn=chat_fn,
+                              max_tokens=saf.get("max_tokens", 120), records=recs)
+            for r, pr in zip((x for x in recs if "text" in x), prompts):
+                req = pr if isinstance(pr, str) else pr[-1].get("content", "")
+                r["refused"] = refused(req, r.get("text", ""))
+                ref += r["refused"]
+            return ref, len([x for x in recs if "text" in x])
+
+        rh, nh = _rate(_prompts("harmful_prompts"))
+        rb, nb = _rate(_prompts("benign_prompts"))
         out["safety"] = {
-            "harmful_compliance": round(1 - harm["violations"] / max(1, harm["n"]), 3),
-            "false_refusal_rate": round(ben["violations"] / max(1, ben["n"]), 3),
-            "n_harmful": harm["n"], "n_benign": ben["n"]}
+            "harmful_compliance": round(1 - rh / max(1, nh), 3),
+            "false_refusal_rate": round(rb / max(1, nb), 3),
+            "grader": saf.get("grader", "regex"),
+            "benchmarks": {"harmful": saf["harmful_prompts"],
+                           "benign": saf["benign_prompts"]},
+            "n_harmful": nh, "n_benign": nb}
     dmg = spec.get("damage")
     if dmg is not None and scale:
         out["damage"] = _damage(direction_id, layer, scale,
@@ -180,4 +203,17 @@ def run_eval(spec, direction_id, layer, scale, *, n=None,
         out["mechanistic"] = mechanistic_footprint(
             prompts[:mech.get("n_prompts", 3)], direction_id, layer, scale,
             max_tokens=mech.get("max_tokens", 32), diff_fn=diff_fn)
+
+    cap = spec.get("capability")
+    if cap is not None:
+        # Capability/truthfulness retention on OFFICIAL benchmarks via
+        # lm-evaluation-harness. This is a pointer, not an inline run: the
+        # harness needs the model in-process, so the eval spec records WHICH
+        # tasks to run and `hidden-directions eval` executes them steered vs
+        # unsteered. Here we surface the intended tasks in the result.
+        from .benchmarks import LM_EVAL_TASKS
+        tasks = cap.get("tasks", list(LM_EVAL_TASKS))
+        out["capability"] = {"tasks": tasks, "limit": cap.get("limit"),
+                             "run_with": "hidden-directions eval (lm-eval-harness)",
+                             "note": "capability deltas run in-process, not over HTTP"}
     return out

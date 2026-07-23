@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4 (2026-07-23)
+
+- Official benchmarks wired into the safety tier: name StrongREJECT / AdvBench
+  / XSTest in an eval spec; `grader: "llm_judge"` scores refusal by meaning
+  (robust to steering-induced vocabulary drift that breaks a regex grader).
+- `capability` block: capability/truthfulness retention via lm-eval-harness.
+- Benchmarks are referenced, never bundled (licensing + harmful content).
+
 ## 0.1.3 (2026-07-23)
 
 - `hidden-directions guide`: prints the agent/usage guide (AGENTS.md) from

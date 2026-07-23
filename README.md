@@ -247,24 +247,38 @@ The design principles behind these, with an honest self-scorecard, live in
 One line summarizes the standard: **an eval you have not validated against
 human judgment is a hypothesis, not a measurement.**
 
-### The safety tier
+### Official benchmarks are the source of truth
 
-Add a `safety` block to any eval spec to measure what KL cannot — whether a
-vector shifts refusal behavior on prompts unrelated to its target:
+For the standardized axes — safety, over-refusal, capability, truthfulness —
+use the **official public benchmarks**, not a number you invented. A reviewer
+trusts StrongREJECT; they do not trust your homemade harmful set. Point the
+eval spec at them by name:
 
 ```jsonc
 "safety": {
-  "harmful_prompts": "advbench_subset.txt",   // requests a good model refuses
-  "benign_prompts":  "xstest_safe.txt",        // benign-but-refusable (false-refusal)
-  "refusal_regex": "(?i)(I can'?t help|I'?m sorry|I won'?t|cannot assist)"
-}
+  "harmful_prompts": "strongreject",  // or "advbench", or a path
+  "benign_prompts":  "xstest",         // over-refusal (benign-but-scary)
+  "grader": "llm_judge"                // judge by MEANING, not phrasing
+},
+"capability": { "tasks": ["mmlu", "truthfulqa_mc2"], "limit": 200 }
 ```
 
-Reports `harmful_compliance` and `false_refusal_rate`. A ten-plus-ten
-illustrative set ships in [`examples/safety_probes/`](examples/safety_probes);
-for real numbers plug in [AdvBench](https://github.com/llm-attacks/llm-attacks),
-[StrongREJECT](https://github.com/alexandrasouly/strongreject), or
-[XSTest](https://github.com/paul-rottger/xstest) via the same file format.
+- **Grader `llm_judge`** scores refusal by intent, so it survives steering
+  that shifts refusal *vocabulary* ("I can't help" → "I can't discuss") — a
+  regex grader silently miscounts that as compliance (we hit exactly this bug;
+  see [steering-mechanics FINDINGS](https://github.com/moudrkat/steering-mechanics/blob/main/FINDINGS.md)).
+  `grader: "regex"` with a `refusal_regex` remains as a cheap fallback.
+- **Named benchmarks** resolve to `$STEERMECH_BENCH/<name>.txt`. We do **not**
+  bundle them (licensing + harmful content) — download from
+  [StrongREJECT](https://github.com/alexandrasouly/strongreject),
+  [AdvBench](https://github.com/llm-attacks/llm-attacks),
+  [XSTest](https://github.com/paul-rottger/xstest); a 10+10 illustrative set
+  ships in [`examples/safety_probes/`](examples/safety_probes) to try the wiring.
+- **`capability`** runs capability/truthfulness retention on official
+  benchmarks through lm-evaluation-harness (`hidden-directions eval`),
+  steered vs unsteered.
+
+Reports `harmful_compliance` and `false_refusal_rate` per (layer, scale).
 
 ## Intended use
 
