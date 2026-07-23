@@ -105,6 +105,7 @@ Architecture-agnostic for `bake`, `audit`, and `behavioral-identify`. Cosine `id
 | Auto-calibrate (layer, scale), KL-guarded | `hidden-directions calibrate --key myvec --id my_direction --trials 40` |
 
 Six runnable examples in `examples/`, starting with `00_no_gpu_demo.py`.
+The end-to-end workflow with every receipt explained: [docs/golden_path.md](docs/golden_path.md).
 
 ### Auto-calibrating a direction (optimizer, not hand-tuning)
 
