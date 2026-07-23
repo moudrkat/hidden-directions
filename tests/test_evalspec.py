@@ -57,3 +57,8 @@ def test_mechanistic_footprint_shapes():
     m = mechanistic_footprint(["p"], "v", 1, 1.0, diff_fn=_diff)
     assert m["cos_profile"] == [0.1, 0.8, 0.2]
     assert m["kl_mean"] == 0.5
+
+
+def test_mechanistic_skipped_at_scale_zero():
+    r = run_eval(dict(SPEC), "vec", 1, 0.0, chat_fn=_chat("clean"), diff_fn=_diff)
+    assert "mechanistic" not in r

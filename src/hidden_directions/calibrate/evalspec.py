@@ -132,7 +132,7 @@ def run_eval(spec, direction_id, layer, scale, *, n=None,
         out["damage"] = _damage(direction_id, layer, scale,
                                 n_prompts=dmg.get("n", 8))
     mech = spec.get("mechanistic")
-    if mech is not None:
+    if mech is not None and scale:  # a forced diff against scale 0 is no diff
         out["mechanistic"] = mechanistic_footprint(
             prompts[:mech.get("n_prompts", 3)], direction_id, layer, scale,
             max_tokens=mech.get("max_tokens", 32), diff_fn=diff_fn)
