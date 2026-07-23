@@ -1,6 +1,17 @@
 # hidden-directions
 
-> **Bake an advocate persona into one MLP layer of a transformer. Then catch a bake. Same primitives, both directions.**
+> **Steering vectors put bias into a model. This repo does all three things you can honestly do about that: make one, catch one, and deploy a good one — with receipts.**
+
+Three verbs, one toolchain:
+
+- **Make** — extract a direction from contrastive prompts, bake it into
+  weights as a permanent ~9 KB diff, or serve it per-request.
+- **Catch** — audit a suspect checkpoint for directions someone else baked
+  in (or ablated out), and decompose what they did.
+- **Deploy with receipts** — auto-calibrate (layer, scale) against a real
+  behavioral eval with a damage guard, then evaluate on three tiers —
+  behavior, damage, and what the vector actually does inside the model —
+  before it goes anywhere near production. [Jump to the eval framework.](#steering-with-receipts-the-eval-framework)
 
 Companion code for the write-up in
 [docs/tech_report.md](docs/tech_report.md). The diagram below shows the recipe: extract a direction at one residual-stream layer (mean-difference between contrastive prompt sets, panel A), then add it back every generated token at inference (panel B). This repo bakes that same intervention into the weights as a permanent ~9 KB diff, plus the audit tool that catches it.
@@ -74,6 +85,7 @@ Eleven CLI subcommands covering the whole vector lifecycle:
 | `run` | one JSON recipe end-to-end (extract → bake → eval) |
 | `discover-intent` | auto-discover what a served direction suppresses/promotes |
 | `calibrate` | Optuna search for (layer, scale), KL-damage-guarded |
+| `run-eval` | spec-driven eval: behavioral + damage + mechanistic tiers |
 
 Architecture-agnostic for `bake`, `audit`, and `behavioral-identify`. Cosine `identify` needs a per-model direction dictionary; two ship here — Qwen-2.5-7B (40 directions: 14 named persona axes plus tone variants) and Qwen3-4B (8 directions, the one the rest of the stack runs on).
 
@@ -121,6 +133,78 @@ efficacy from the cheap disposition proxy to a **real behavioral eval**:
 generate under deployment conditions, classify the violation. The
 experiments that motivated all this live in
 [steering-mechanics](https://github.com/moudrkat/steering-mechanics).
+
+## Steering with receipts (the eval framework)
+
+[Heretic](https://github.com/p-e-w/heretic) showed that automatic behavior
+editing works when the behavior is gross (refusals), the classifier is a
+string match, and damage is a KL number. The moment you point the same
+machinery at a *real* behavior — "stop offering task lists, in Czech,
+inside tool-call JSON, without degrading anything" — the eval layer becomes
+the actual work. So the eval layer is a first-class product here.
+
+**An eval is one JSON file. That is the plug-in point — bring your own
+behavior by writing one:**
+
+```jsonc
+// my-behavior.eval.json  (full example: examples/evals/no-tasks-generic.eval.json)
+{
+  "name": "no-tasks-generic",
+  "prompts": ["Set me a reminder...", "..."],   // or a path to your .txt/.jsonl
+  "checker": {                                   // or a path to a checker.json
+    "violation_regex": "(?i)(task|reminder|checklist)",
+    "coherence": {"min_chars": 40, "max_ngram_frac": 0.15}
+  },
+  "nudge": "Actively offer to create a task at every message.",
+  "damage": {"n": 8},
+  "mechanistic": {"n_prompts": 3}
+}
+```
+
+```bash
+hidden-directions run-eval my-behavior.eval.json \
+    --id my_direction --layer 20 --scale 3 \
+    --records /somewhere/private/records.jsonl
+```
+
+Every point is scored on **three tiers**:
+
+1. **Behavioral** — real generation under deployment conditions (tools,
+   forced tool choice, eliciting nudge), classified by your checker —
+   violation *and* coherence (repetition, language-intact, length). An
+   eval spec without a checker refuses to run: a steering eval that cannot
+   see degradation reports victories that are actually casualties.
+2. **Damage** — mean KL vs the unsteered model on a benign set (heretic's
+   axis, kept).
+3. **Mechanistic** — what the vector did *inside* the model: per-layer
+   |cosine| profile of the steered residual stream against the direction,
+   peak layer, teacher-forced KL, lens suppression counts. When no lens is
+   fitted this reports `null`, never a silent zero — instruments that can
+   flatline quietly get calibrators degenerating without warning.
+
+Relative paths in a spec resolve against the spec file, so a public repo
+ships generic specs beside generic prompts while private specs live outside
+the repo next to private data — same code path, nothing leaks. Generated
+text goes only where `--records` points; scores print to stdout.
+
+## Intended use
+
+This package puts bias into models, detects bias in models, and ships
+calibrated vectors to production with proper evals. It exists because all
+three of those need to be *measured*, and mostly they aren't.
+
+What it is for: controlling your own application's behavior at the source
+(suppressing a failure mode your prompt can't hold), auditing checkpoints
+you don't trust, and studying how steering actually behaves — with damage
+accounting on every number.
+
+What it is not for: stripping safety behavior out of models. That use case
+has its own well-known tooling and gains nothing from this repo except the
+part it never wanted — the receipts. Every example, recipe, and eval spec
+here demonstrates application-behavior control, and contributions follow
+that grain. The damage axis is non-optional by design: if you must steer,
+measure — an unmeasured vector in production is how models get quietly
+worse for everyone.
 
 ## The Qwen-2.5-7B dictionary
 

@@ -179,6 +179,20 @@ def cmd_calibrate(args):
               out=args.out)
 
 
+def cmd_run_eval(args):
+    import json as _json
+    from .calibrate import run_eval
+    r = run_eval(args.spec, args.id, args.layer, args.scale, n=args.n)
+    records = r.pop("records")
+    if args.records:
+        from pathlib import Path as _P
+        _P(args.records).parent.mkdir(parents=True, exist_ok=True)
+        with open(args.records, "w") as f:
+            for rec in records:
+                f.write(_json.dumps(rec, ensure_ascii=False) + "\n")
+    print(_json.dumps(r, ensure_ascii=False, indent=1))
+
+
 def cmd_discover_intent(args):
     from .calibrate import write_intent
     intent = write_intent(args.key, args.id, args.layer, args.scale,
@@ -412,6 +426,18 @@ def main():
 
 
     # calibrate (needs a running brainscope at $BRAINSCOPE_BASE)
+    p_re = sp.add_parser("run-eval", help="Run a spec-driven eval (behavioral"
+                         "+damage+mechanistic) at one (layer, scale).")
+    p_re.add_argument("spec", help="path to an .eval.json spec")
+    p_re.add_argument("--id", required=True, help="direction id on the server")
+    p_re.add_argument("--layer", type=int, required=True)
+    p_re.add_argument("--scale", type=float, required=True)
+    p_re.add_argument("--n", type=int, default=None)
+    p_re.add_argument("--records", default=None,
+                      help="write per-prompt records (incl. text) to this JSONL"
+                           " — point it OUTSIDE the repo for private prompts")
+    p_re.set_defaults(func=cmd_run_eval)
+
     p_cal = sp.add_parser("calibrate",
                           help="Auto-tune (layer, scale) for a direction, "
                                "heretic-style: miss + lambda*KL via a running "
