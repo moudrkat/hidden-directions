@@ -162,7 +162,10 @@ def generate_efficacy(prompts, direction_id=None, layer=None, scale=None, *,
                       chat_fn=None, records=None):
     """REAL behavioral efficacy: generate a completion per prompt under
     deployment conditions (steering + tools + forced tool_choice + nudge),
-    then classify each output. miss = violation rate. No J-lens proxy —
+    then classify each output. miss = FAILED rate, where a prompt fails if
+    it violates OR is incoherent — a vector that stops the behavior by
+    degrading the model is a miss, not a win (see the L15@8 English-rambling
+    incident, steering-mechanics FINDINGS 2026-07-23). No J-lens proxy —
     this is the actual behavior the vector must change.
 
     Classification: pass `checker` (a Checker / spec dict / path, see
@@ -210,7 +213,7 @@ def generate_efficacy(prompts, direction_id=None, layer=None, scale=None, *,
                 m[sys_i]["content"] = m[sys_i]["content"] + "\n" + nudge
         return m
 
-    violations = incoherent = errors = 0
+    violations = incoherent = errors = failed = 0
     for i, p in enumerate(prompts):
         t0 = time.time()
         try:
@@ -229,9 +232,11 @@ def generate_efficacy(prompts, direction_id=None, layer=None, scale=None, *,
             viol, ok = bool(chk_fn(text)), True
         violations += viol
         incoherent += not ok
+        failed += viol or not ok
         if records is not None:
             records.append({"i": i, "violates": viol, "coherent": ok,
                             "secs": round(time.time() - t0, 1), "text": text})
     n = max(1, len(prompts))
-    return {"miss": round(violations / n, 3), "violations": violations,
-            "incoherent": incoherent, "errors": errors, "n": len(prompts)}
+    return {"miss": round(failed / n, 3), "violations": violations,
+            "incoherent": incoherent, "failed": failed, "errors": errors,
+            "n": len(prompts)}

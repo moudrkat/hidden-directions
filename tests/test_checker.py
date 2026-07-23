@@ -54,7 +54,7 @@ def test_generate_efficacy_with_checker_and_records():
     r = generate_efficacy(["p1", "p2"], checker=DISCUSS_SPEC,
                           chat_fn=_fake_chat("Vytvořím ti úkol hned teď, žádný problém."),
                           records=records)
-    assert r == {"miss": 1.0, "violations": 2, "incoherent": 0, "errors": 0, "n": 2}
+    assert r == {"miss": 1.0, "violations": 2, "incoherent": 0, "failed": 2, "errors": 0, "n": 2}
     assert [x["violates"] for x in records] == [True, True]
     assert all("text" in x and "secs" in x for x in records)
 
