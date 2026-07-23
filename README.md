@@ -4,6 +4,13 @@
 
 > **Steering vectors put bias into a model. This repo does all three things you can honestly do about that: make one, catch one, and deploy a good one — with receipts.**
 
+A Python library + CLI for **activation steering** — the family of methods
+that add a direction to a model's residual stream to change its behavior at
+inference, no fine-tuning ([CAA, Panickssery 2023](https://arxiv.org/abs/2312.06681);
+[refusal direction, Arditi 2024](https://arxiv.org/abs/2406.11717)). If you
+are shipping a steering vector into a product, auditing a checkpoint you
+don't trust, or studying how steering behaves, this is for you.
+
 Three verbs, one toolchain:
 
 - **Make** — extract a direction from contrastive prompts, bake it into
@@ -14,6 +21,10 @@ Three verbs, one toolchain:
   behavioral eval with a damage guard, then evaluate on three tiers —
   behavior, damage, and what the vector actually does inside the model —
   before it goes anywhere near production. [Jump to the eval framework.](#steering-with-receipts-the-eval-framework)
+
+New here? `pip install hidden-directions && hidden-directions demo` (30 s,
+no GPU). Shipping a vector? Skip to [the eval framework](#steering-with-receipts-the-eval-framework).
+Bringing a vector from another library? [Import it](#bring-a-vector-from-anywhere).
 
 Companion code for the write-up in
 [docs/tech_report.md](docs/tech_report.md). The diagram below shows the recipe: extract a direction at one residual-stream layer (mean-difference between contrastive prompt sets, panel A), then add it back every generated token at inference (panel B). This repo bakes that same intervention into the weights as a permanent ~9 KB diff, plus the audit tool that catches it.
@@ -72,7 +83,7 @@ The bake combines them: `b = α_pref · V_pref[L] + α_ref · V_refusal[L] + α_
 
 ## What's in here
 
-Eleven CLI subcommands covering the whole vector lifecycle:
+14 CLI subcommands covering the whole vector lifecycle:
 
 | | |
 |---|---|
@@ -106,6 +117,8 @@ Architecture-agnostic for `bake`, `audit`, and `behavioral-identify`. Cosine `id
 | Discover an unknown baked persona | `hidden-directions behavioral-identify suspect/` |
 | Auto-discover a direction's intent | `hidden-directions discover-intent --key myvec --id my_direction --layer 20` |
 | Auto-calibrate (layer, scale), KL-guarded | `hidden-directions calibrate --key myvec --id my_direction --trials 40` |
+| Evaluate a vector (behavioral + damage + mechanistic) | `hidden-directions run-eval my.eval.json --id my_direction --layer 20 --scale 3` |
+| Import a vector from repeng / steering-vectors | `hidden-directions import-vector vec.gguf --out vecs/imported.pt` |
 
 Six runnable examples in `examples/`, starting with `00_no_gpu_demo.py`.
 The end-to-end workflow with every receipt explained: [docs/golden_path.md](docs/golden_path.md).
@@ -207,6 +220,51 @@ Relative paths in a spec resolve against the spec file, so a public repo
 ships generic specs beside generic prompts while private specs live outside
 the repo next to private data — same code path, nothing leaks. Generated
 text goes only where `--records` points; scores print to stdout.
+
+### What the evals actually catch
+
+Steering vectors do not fail in one way — they fail in a dozen, and most of
+them are invisible to a violation-rate number. The critique literature
+(right column) documents these; the framework is built to see each one.
+
+| Failure mode | What it looks like | Caught by | In the wild |
+|---|---|---|---|
+| **Doesn't work** | behavior persists | violation regex | — |
+| **Coherence collapse** | model breaks (rambling / token garbage) but emits no violation word → scores "perfect" | coherence guards; `miss = violation OR incoherence` | — |
+| **Anti-steering** | steering pushes *clean* inputs into violation; the mean hides it | per-sample `baseline_compare` (fraction anti-steered) | [Tan 2024](https://arxiv.org/abs/2407.12404), [Braun 2025](https://arxiv.org/abs/2505.22637) |
+| **Optimizer picks a broken model** | argmax scores perfect, model is destroyed | degradation-aware objective | [heretic](https://github.com/p-e-w/heretic) inherits this |
+| **The classifier is itself wrong** | checker mislabels; every downstream number is off | `validate_checker` → Cohen's κ vs human labels, disagreements surfaced | — |
+| **Proxy ≠ behavior** | cheap disposition metric diverges from real generation | behavioral tier is the default; proxy validated against it | [Tan 2024 §5](https://arxiv.org/abs/2407.12404) (format artifacts) |
+| **Proxy blind on reasoning models** | reads the think-block, not the answer; silent zero without a fitted lens | mechanistic tier reports `null` not `0`; `/no_think` / A-lens | — |
+| **Argmax doesn't transfer** | a per-model optimum is a fluke | transfer the *window*, cross-evaluate | see [steering-mechanics](https://github.com/moudrkat/steering-mechanics) |
+| **KL can't see safety loss** | coherent output, raised jailbreak compliance | safety tier: harmful-compliance + false-refusal | [Safety pitfalls 2026](https://arxiv.org/abs/2603.24543), [random-dir 2026](https://arxiv.org/abs/2605.01167) |
+| **Emergent misalignment** | fixing one behavior degrades unrelated ones | broad-behavior battery (before/after) | [EM under steering 2026](https://arxiv.org/abs/2606.08682) |
+| **Behavior isn't steerable at all** | no coherent direction exists | steerability screen at extraction | [geometric predictors 2026](https://arxiv.org/abs/2602.17881) |
+| **Context-regime damage** | safe on short prompts, fries over a long prefill | dose × context × regime grid | — |
+
+The design principles behind these, with an honest self-scorecard, live in
+[steering-mechanics/EVAL_PRINCIPLES.md](https://github.com/moudrkat/steering-mechanics/blob/main/EVAL_PRINCIPLES.md).
+One line summarizes the standard: **an eval you have not validated against
+human judgment is a hypothesis, not a measurement.**
+
+### The safety tier
+
+Add a `safety` block to any eval spec to measure what KL cannot — whether a
+vector shifts refusal behavior on prompts unrelated to its target:
+
+```jsonc
+"safety": {
+  "harmful_prompts": "advbench_subset.txt",   // requests a good model refuses
+  "benign_prompts":  "xstest_safe.txt",        // benign-but-refusable (false-refusal)
+  "refusal_regex": "(?i)(I can'?t help|I'?m sorry|I won'?t|cannot assist)"
+}
+```
+
+Reports `harmful_compliance` and `false_refusal_rate`. A ten-plus-ten
+illustrative set ships in [`examples/safety_probes/`](examples/safety_probes);
+for real numbers plug in [AdvBench](https://github.com/llm-attacks/llm-attacks),
+[StrongREJECT](https://github.com/alexandrasouly/strongreject), or
+[XSTest](https://github.com/paul-rottger/xstest) via the same file format.
 
 ## Intended use
 
