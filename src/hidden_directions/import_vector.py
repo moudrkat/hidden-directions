@@ -93,3 +93,26 @@ def import_to_pt(src, out, *, layer=None, n_layers=None):
     Path(out).parent.mkdir(parents=True, exist_ok=True)
     torch.save(V, out)
     return V.shape
+
+
+def random_control_matrix(vector_matrix, *, seed=0):
+    """A matched-per-layer-norm random direction — the control for damage
+    measurement: KL from THIS vector vs KL from ANY vector at the same norm.
+    Deterministic given seed. Pure python (no numpy) so it stays testable."""
+    import math
+    rows = vector_matrix.tolist() if hasattr(vector_matrix, "tolist") else vector_matrix
+    state = seed or 1
+    out = []
+    for row in rows:
+        norm = math.sqrt(sum(x * x for x in row)) or 0.0
+        rnd = []
+        for _ in row:
+            # Box-Muller from a deterministic LCG
+            state = (1103515245 * state + 12345) & 0x7fffffff
+            u1 = (state or 1) / 0x7fffffff
+            state = (1103515245 * state + 12345) & 0x7fffffff
+            u2 = (state or 1) / 0x7fffffff
+            rnd.append(math.sqrt(-2*math.log(u1)) * math.cos(2*math.pi*u2))
+        rn = math.sqrt(sum(x*x for x in rnd)) or 1.0
+        out.append([x * norm / rn for x in rnd])
+    return out

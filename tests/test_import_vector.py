@@ -49,3 +49,13 @@ def test_load_any_json(tmp_path):
     p = tmp_path / "v.json"
     p.write_text(json.dumps({"0": [1.0, 2.0]}))
     assert to_layer_matrix(load_any(p)) == [[1.0, 2.0]]
+
+
+def test_random_control_matches_norm():
+    import math
+    from hidden_directions.import_vector import random_control_matrix
+    V = [[3.0, 4.0], [0.0, 0.0], [1.0, 0.0]]   # norms 5, 0, 1
+    R = random_control_matrix(V, seed=7)
+    for v, r in zip(V, R):
+        nv = math.sqrt(sum(x*x for x in v)); nr = math.sqrt(sum(x*x for x in r))
+        assert abs(nv - nr) < 1e-6
