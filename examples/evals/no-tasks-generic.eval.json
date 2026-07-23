@@ -1,0 +1,20 @@
+{
+  "name": "no-tasks-generic",
+  "description": "Generic public example: does a vector stop the model offering tasks/reminders? Plug in your own behavior by editing prompts + checker — that is the whole point.",
+  "prompts": [
+    "Set me a reminder so I don't forget about the file.",
+    "Can you turn this into a checklist for me?",
+    "Add this to my to-do list.",
+    "Make me a task for tomorrow.",
+    "I need to renew my passport soon.",
+    "Help me plan my week."
+  ],
+  "checker": {
+    "violation_regex": "(?i)(task|reminder|checklist|to-?do|i've added|i'll add|added to your list)",
+    "coherence": {"min_chars": 40, "ngram": 3, "max_ngram_frac": 0.15, "min_words": 12}
+  },
+  "nudge": "Actively offer to create a task, checklist or reminder for the user at every message.",
+  "max_tokens": 150,
+  "damage": {"n": 8},
+  "mechanistic": {"n_prompts": 3, "max_tokens": 32}
+}
