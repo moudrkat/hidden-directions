@@ -25,3 +25,7 @@ eval/
 .vscode/
 .idea/
 .DS_Store
+
+# local, never-committed Claude context
+CLAUDE.local.md
+.claude/*.local.md

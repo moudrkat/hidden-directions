@@ -188,6 +188,11 @@ def cmd_import_vector(args):
           "hidden-directions run-eval your.eval.json --id <name> --layer L --scale S")
 
 
+def cmd_guide(args):
+    from importlib.resources import files
+    print((files("hidden_directions") / "AGENTS.md").read_text())
+
+
 def cmd_demo(args):
     from importlib.resources import files
     d = files("hidden_directions") / "demo_data"
@@ -458,6 +463,10 @@ def main():
                        help="required if source is a single 1-D vector")
     p_imp.add_argument("--n-layers", type=int, default=None)
     p_imp.set_defaults(func=cmd_import_vector)
+
+    p_guide = sp.add_parser("guide", help="print the agent/usage guide "
+                            "(AGENTS.md) from the installed package.")
+    p_guide.set_defaults(func=cmd_guide)
 
     p_demo = sp.add_parser("demo", help="30-second offline demo from packaged"
                            " data (no GPU, no clone, no downloads).")

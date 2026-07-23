@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3 (2026-07-23)
+
+- `hidden-directions guide`: prints the agent/usage guide (AGENTS.md) from
+  the installed package — so a coding agent helping a pip user can find the
+  golden path without the repo. AGENTS.md + CLAUDE.md added.
+
 ## 0.1.2 (2026-07-23)
 
 - `import-vector`: bring a steering vector from repeng, the steering-vectors
