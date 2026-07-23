@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "hidden_directions"
 version = "0.1.0"
-description = "Training-free additive persona vector baking for transformers"
+description = "Steering vectors with receipts: make one, catch one, deploy a calibrated one — extraction, audit, and a three-tier eval framework (behavioral, damage, mechanistic)"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
@@ -30,6 +30,11 @@ dependencies = [
 eval = ["lm-eval>=0.4"]
 calibrate = ["optuna>=3.0"]
 dev = ["pytest>=7", "ruff>=0.5"]
+
+[project.urls]
+Homepage = "https://github.com/moudrkat/hidden-directions"
+Issues = "https://github.com/moudrkat/hidden-directions/issues"
+Lab = "https://github.com/moudrkat"
 
 [project.scripts]
 hidden-directions = "hidden_directions.cli:main"
