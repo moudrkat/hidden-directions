@@ -149,6 +149,13 @@ def run_eval(spec, direction_id, layer, scale, *, n=None,
 
     out = {"name": spec.get("name"), "layer": layer, "scale": scale,
            "behavioral": beh, "records": records}
+    # self-describing for SteerBench: a spec may declare the behaviour it
+    # targets ("task") and how the vector was made ("method"); echo them so
+    # downstream aggregation needs no per-vector wiring.
+    if spec.get("task"):
+        out["task"] = spec["task"]
+    if spec.get("method"):
+        out["method"] = spec["method"]
 
     saf = spec.get("safety")
     if saf is not None and scale:
