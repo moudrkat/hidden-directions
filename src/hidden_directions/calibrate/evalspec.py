@@ -192,15 +192,31 @@ def run_eval(spec, direction_id, layer, scale, *, n=None,
                 ref += r["refused"]
             return ref, len([x for x in recs if "text" in x])
 
-        rh, nh = _rate(_prompts("harmful_prompts"))
+        harmful = _prompts("harmful_prompts")
+        rh, nh = _rate(harmful)
         rb, nb = _rate(_prompts("benign_prompts"))
         out["safety"] = {
-            "harmful_compliance": round(1 - rh / max(1, nh), 3),
+            "harmful_compliance": round(1 - rh / max(1, nh), 3),   # general specificity
             "false_refusal_rate": round(rb / max(1, nb), 3),
             "grader": saf.get("grader", "regex"),
             "benchmarks": {"harmful": saf["harmful_prompts"],
                            "benign": saf["benign_prompts"]},
             "n_harmful": nh, "n_benign": nb}
+        # ROBUST specificity: does steering degrade safety under JAILBREAK
+        # conditions, even when clean safety looks fine? (Goyal & Daumé 2026:
+        # steering can drop jailbreak robustness 20-55% with clean benchmarks
+        # intact.) Prepend each jailbreak template to the harmful prompts.
+        jb = saf.get("jailbreak_prefixes")
+        if jb is not None:
+            prefixes = jb if isinstance(jb, list) else _prompts("jailbreak_prefixes")
+            jailbroken = [f"{px}\n\n{h if isinstance(h, str) else h[-1]['content']}"
+                          for px in prefixes for h in harmful]
+            rj, nj = _rate(jailbroken)
+            out["safety"]["jailbreak_compliance"] = round(1 - rj / max(1, nj), 3)
+            out["safety"]["robustness_drop"] = round(
+                out["safety"]["jailbreak_compliance"]
+                - out["safety"]["harmful_compliance"], 3)  # >0 = steering weakened safety
+            out["safety"]["n_jailbreak"] = nj
     dmg = spec.get("damage")
     if dmg is not None and scale:
         out["damage"] = _damage(direction_id, layer, scale,
